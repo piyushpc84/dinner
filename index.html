@@ -32,8 +32,16 @@
     #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
     .dare-emoji { font-size: 80px; margin-bottom: 1rem; animation: shake 0.5s infinite; }
     @keyframes shake { 0%,100%{transform:rotate(0deg)} 25%{transform:rotate(-8deg)} 75%{transform:rotate(8deg)} }
-    .video-wrap { width: 100%; max-width: 360px; border-radius: 18px; overflow: hidden; border: 4px solid #f48fb1; box-shadow: 0 8px 30px rgba(194,24,91,0.25); margin-bottom: 1.2rem; }
-    .video-wrap iframe { width: 100%; height: 203px; display: block; border: none; }
+    .music-player { background: #fff; border-radius: 20px; border: 3px solid #f48fb1; box-shadow: 0 8px 30px rgba(194,24,91,0.2); padding: 1.4rem 2rem; margin-bottom: 1.2rem; width: 280px; }
+    .music-title { font-family: 'Pacifico', cursive; color: #c2185b; font-size: 1rem; margin-bottom: 0.3rem; }
+    .music-artist { font-size: 0.8rem; color: #aaa; margin-bottom: 1rem; }
+    .play-btn { width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg,#e91e8c,#c2185b); border: none; cursor: pointer; font-size: 1.6rem; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; transition: transform 0.15s; box-shadow: 0 4px 14px rgba(233,30,140,0.4); }
+    .play-btn:hover { transform: scale(1.08); }
+    .progress-bar { width: 100%; height: 5px; background: #fce4ec; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
+    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg,#e91e8c,#c2185b); border-radius: 10px; transition: width 0.5s linear; }
+    .music-time { font-size: 0.75rem; color: #bbb; display: flex; justify-content: space-between; }
+    .music-note { font-size: 2rem; animation: spin 2s linear infinite; display: inline-block; }
+    @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
     .hearts-row { font-size: 2rem; margin-bottom: 0.8rem; animation: bounce 1s infinite; }
     @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
     .floaties { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:0; overflow:hidden; }
@@ -85,8 +93,14 @@
     <div class="hearts-row">❤️ 🧡 💛 💚 💙 💜</div>
     <h1 style="color:#c2185b;">Yesss! You said yes!</h1>
     <p>I knew you'd make the right choice 😏<br>Now watch this while I plan our dinner 🍷</p>
-    <div class="video-wrap">
-      <iframe src="https://www.youtube.com/embed/LVbri3nH0O8?autoplay=1&loop=1&playlist=LVbri3nH0O8" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <iframe id="yt-audio" src="" allow="autoplay; encrypted-media" style="display:none;" title="background music"></iframe>
+    <div class="music-player">
+      <div class="music-note">🎵</div>
+      <div class="music-title">Our Song 💕</div>
+      <div class="music-artist">Playing just for you ✨</div>
+      <button class="play-btn" id="play-btn" onclick="toggleMusic()">⏸️</button>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="music-time"><span>♪ playing</span><span id="music-status">🎶 on loop</span></div>
     </div>
     <img class="funny-gif" src="https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif" alt="celebration" style="width:180px;margin-bottom:1rem;"/>
     <p style="font-size:0.85rem;color:#e91e8c;font-weight:700;">🎉 Best decision of your life! 🎉</p>
@@ -110,9 +124,48 @@
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
   }
+  let musicPlaying = false;
+  let progressInterval = null;
+  let progressVal = 0;
+
   function onAccept() {
     showPage('page3');
     launchConfetti();
+    setTimeout(startMusic, 400);
+  }
+
+  function startMusic() {
+    const iframe = document.getElementById('yt-audio');
+    iframe.src = 'https://www.youtube.com/embed/LVbri3nH0O8?autoplay=1&loop=1&playlist=LVbri3nH0O8&controls=0';
+    musicPlaying = true;
+    animateProgress();
+  }
+
+  function toggleMusic() {
+    const iframe = document.getElementById('yt-audio');
+    const btn = document.getElementById('play-btn');
+    const status = document.getElementById('music-status');
+    if (musicPlaying) {
+      iframe.src = '';
+      musicPlaying = false;
+      btn.textContent = '▶️';
+      status.textContent = '⏸ paused';
+      clearInterval(progressInterval);
+    } else {
+      iframe.src = 'https://www.youtube.com/embed/LVbri3nH0O8?autoplay=1&loop=1&playlist=LVbri3nH0O8&controls=0';
+      musicPlaying = true;
+      btn.textContent = '⏸️';
+      status.textContent = '🎶 on loop';
+      animateProgress();
+    }
+  }
+
+  function animateProgress() {
+    clearInterval(progressInterval);
+    progressInterval = setInterval(() => {
+      progressVal = (progressVal + 0.3) % 100;
+      document.getElementById('progress-fill').style.width = progressVal + '%';
+    }, 200);
   }
   function launchConfetti() {
     const canvas = document.getElementById('confetti-canvas');
